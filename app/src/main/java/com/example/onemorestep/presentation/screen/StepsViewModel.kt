@@ -9,17 +9,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.onemorestep.data.HealthConnectManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import kotlin.time.Duration.Companion.milliseconds
 
 class StepsViewModel(private val healthConnectManager: HealthConnectManager) : ViewModel() {
-    var stepsCount by mutableStateOf<Long?>(null)
-        private set
     var isGranted by mutableStateOf(false)
         private set
-    var errorMessage by mutableStateOf<String?>(null)
+    var stepsCount by mutableStateOf<Long?>(null)
+        private set
+    var goal by mutableStateOf<Long?>(100000)
+        private set
+    var percent by mutableStateOf<Double?>(null)
         private set
 
     val permissions = setOf(
@@ -27,21 +32,31 @@ class StepsViewModel(private val healthConnectManager: HealthConnectManager) : V
         HealthPermission.PERMISSION_READ_HEALTH_DATA_IN_BACKGROUND,
         HealthPermission.PERMISSION_READ_HEALTH_DATA_HISTORY
     )
-    val permissionsLauncher = healthConnectManager.requestPermissionsActivityContract()
 
-    fun checkPermissionsAndRead() {
-        viewModelScope.launch {
-            try {
-                isGranted = healthConnectManager.hasAllPermissions(permissions)
+    init {
+        startReadingTask()
+    }
 
-                val todayStart = LocalDate.now().atStartOfDay(ZoneId.of("UTC")).toInstant()
-                val now = Instant.now()
-                stepsCount = healthConnectManager.readSteps(todayStart, now).sumOf { it.count }
-                errorMessage = null
-            } catch (e: Exception) {
-                errorMessage = "Ошибка: ${e.localizedMessage ?: "неизвестная ошибка"}"
-                stepsCount = null
+    private fun startReadingTask() {
+        viewModelScope.launch(Dispatchers.IO) {
+            while (true) {
+                checkPermissionsAndReadSteps()
+                delay(5000.milliseconds)
             }
+        }
+    }
+
+    private fun checkPermissionsAndReadSteps() {
+        viewModelScope.launch {
+            isGranted = healthConnectManager.hasAllPermissions(permissions)
+            if (!isGranted) {
+                return@launch
+            }
+
+            val todayStart = LocalDate.now().atStartOfDay().toInstant(ZoneOffset.UTC)
+            val now = LocalDateTime.now().toInstant(ZoneOffset.UTC)
+            stepsCount = healthConnectManager.readSteps(todayStart, now).sumOf { it.count }
+            percent = stepsCount!!.toDouble() * 100 / goal!!
         }
     }
 }
