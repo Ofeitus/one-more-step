@@ -29,13 +29,17 @@ class StepsViewModel(private val healthConnectManager: HealthConnectManager) : V
         private set
     var goal by mutableStateOf<Long?>(100000)
         private set
-    var avgTempo by mutableStateOf<Double?>(null)
+    var targetTempo by mutableStateOf<Double?>(6500.0 / 3600000000000)
         private set
     var lastTempo by mutableStateOf<Double?>(null)
         private set
-    var avgTempoEstimatedGoalTime by mutableStateOf<LocalDateTime?>(null)
+    var avgTempo by mutableStateOf<Double?>(null)
+        private set
+    var targetTempoEstimatedGoalTime by mutableStateOf<LocalDateTime?>(null)
         private set
     var lastTempoEstimatedGoalTime by mutableStateOf<LocalDateTime?>(null)
+        private set
+    var avgTempoEstimatedGoalTime by mutableStateOf<LocalDateTime?>(null)
         private set
 
     val permissions = setOf(
@@ -84,11 +88,14 @@ class StepsViewModel(private val healthConnectManager: HealthConnectManager) : V
             }
 
             stepsCount = stepsRecords.sumOf { it.count }
-            avgTempo = if (totalSteppingTime > 0) stepsCount!!.toDouble() / totalSteppingTime else 0.0
+
             lastTempo = if (lastSteppingTime > 0) lastStepsCount.toDouble() / lastSteppingTime else 0.0
+            avgTempo = if (totalSteppingTime > 0) stepsCount!!.toDouble() / totalSteppingTime else 0.0
+
             val remaining = goal!! - stepsCount!!
-            avgTempoEstimatedGoalTime = if (avgTempo!! > 0) LocalDateTime.now().plusNanos((remaining / avgTempo!!).toLong()) else null
+            targetTempoEstimatedGoalTime = if (targetTempo!! > 0) LocalDateTime.now().plusNanos((remaining / targetTempo!!).toLong()) else null
             lastTempoEstimatedGoalTime = if (lastTempo!! > 0) LocalDateTime.now().plusNanos((remaining / lastTempo!!).toLong()) else null
+            avgTempoEstimatedGoalTime = if (avgTempo!! > 0) LocalDateTime.now().plusNanos((remaining / avgTempo!!).toLong()) else null
 
             chartModelProducer.runTransaction {
                 lineModel {

@@ -2,6 +2,7 @@ package com.example.onemorestep.presentation.screen
 
 import android.content.res.Configuration
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -28,8 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.health.connect.client.PermissionController
 import com.example.onemorestep.R
 import com.example.onemorestep.data.tempoFromNanosToHours
-import com.example.onemorestep.ui.theme.CustomGreen
-import com.example.onemorestep.ui.theme.PureWhite
+import com.example.onemorestep.ui.theme.CustomBlue
+import com.example.onemorestep.ui.theme.CustomBlueTransparent
+import com.example.onemorestep.ui.theme.CustomGreenTransparent
+import com.example.onemorestep.ui.theme.CustomRedTransparent
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.Zoom
 import com.patrykandpatrick.vico.compose.cartesian.axis.HorizontalAxis
@@ -103,7 +107,7 @@ fun StepsCountComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             Icon(
-                painterResource(R.drawable.lucide_footprints),
+                painterResource(R.drawable.material_symbols_steps),
                 modifier = Modifier.fillMaxSize().weight(0.15f),
                 contentDescription = null
             )
@@ -127,64 +131,134 @@ fun StepsCountComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier
 
 @Composable
 fun TempoStatsComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier) {
-    val avgTempo = viewModel.avgTempo
+    val targetTempo = viewModel.targetTempo
     val lastTempo = viewModel.lastTempo
-    val avgTempoEstimatedGoalTime = viewModel.avgTempoEstimatedGoalTime
+    val avgTempo = viewModel.avgTempo
+    val targetTempoEstimatedGoalTime = viewModel.targetTempoEstimatedGoalTime
     val lastTempoEstimatedGoalTime = viewModel.lastTempoEstimatedGoalTime
+    val avgTempoEstimatedGoalTime = viewModel.avgTempoEstimatedGoalTime
 
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(3.dp)
+    ) {
         Row(
-            modifier = Modifier.fillMaxSize().weight(0.5f),
+            modifier = Modifier.fillMaxSize().weight(1f),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                painterResource(R.drawable.lucide_sport_shoe),
-                modifier = Modifier.weight(0.1f),
+                painterResource(R.drawable.material_icons_speed),
+                modifier = Modifier.fillMaxSize().weight(0.1f),
                 contentDescription = null
             )
             Text(
-                if (avgTempo != null) tempoFromNanosToHours(avgTempo).toString() else "-",
-                modifier = Modifier.padding(12.dp, 0.dp).weight(0.4f),
+                "Tempo",
+                modifier = Modifier.padding(6.dp, 0.dp).weight(0.4f),
                 autoSize = TextAutoSize.StepBased(),
                 maxLines = 1
             )
             Icon(
                 painterResource(R.drawable.lucide_timer),
-                modifier = Modifier.weight(0.1f),
+                modifier = Modifier.fillMaxSize().weight(0.1f),
                 contentDescription = null
             )
             Text(
-                avgTempoEstimatedGoalTime?.format(timeFormat) ?: "∞",
-                modifier = Modifier.padding(12.dp, 0.dp).weight(0.4f),
+                "Estimated time to reach goal",
+                modifier = Modifier.padding(6.dp, 0.dp).weight(0.4f),
+                autoSize = TextAutoSize.StepBased(),
+                maxLines = 2
+            )
+        }
+        Row(modifier = Modifier.fillMaxSize().weight(0.4f)) {
+            Text(
+                "Target",
+                modifier = Modifier.padding(6.dp, 0.dp),
+                color = MaterialTheme.colorScheme.secondary,
                 autoSize = TextAutoSize.StepBased(),
                 maxLines = 1
             )
         }
         Row(
-            modifier = Modifier.fillMaxSize().weight(0.5f),
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(12.dp))
+                .background(CustomGreenTransparent)
+                .weight(1f),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                painterResource(R.drawable.lucide_sport_shoe),
-                modifier = Modifier.weight(0.1f),
-                contentDescription = null
-            )
             Text(
-                if (lastTempo != null) tempoFromNanosToHours(lastTempo).toString() else "-",
-                modifier = Modifier.padding(12.dp, 0.dp).weight(0.4f),
+                if (targetTempo != null) tempoFromNanosToHours(targetTempo).toString() else "-",
+                modifier = Modifier.padding(6.dp, 0.dp).weight(0.5f),
                 autoSize = TextAutoSize.StepBased(),
                 maxLines = 1
             )
-            Icon(
-                painterResource(R.drawable.lucide_timer),
-                modifier = Modifier.weight(0.1f),
-                contentDescription = null
+            Text(
+                targetTempoEstimatedGoalTime?.format(timeFormat) ?: "∞",
+                modifier = Modifier.padding(6.dp, 0.dp).weight(0.5f),
+                autoSize = TextAutoSize.StepBased(),
+                maxLines = 1
+            )
+        }
+        Row(modifier = Modifier.fillMaxSize().weight(0.4f)) {
+            Text(
+                "Current",
+                modifier = Modifier.padding(6.dp, 0.dp),
+                color = MaterialTheme.colorScheme.secondary,
+                autoSize = TextAutoSize.StepBased(),
+                maxLines = 1
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(12.dp))
+                .background(CustomBlueTransparent)
+                .weight(1f),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                if (lastTempo != null) tempoFromNanosToHours(lastTempo).toString() else "-",
+                modifier = Modifier.padding(6.dp, 0.dp).weight(0.5f),
+                autoSize = TextAutoSize.StepBased(),
+                maxLines = 1
             )
             Text(
                 lastTempoEstimatedGoalTime?.format(timeFormat) ?: "∞",
-                modifier = Modifier.padding(12.dp, 0.dp).weight(0.4f),
+                modifier = Modifier.padding(6.dp, 0.dp).weight(0.5f),
+                autoSize = TextAutoSize.StepBased(),
+                maxLines = 1
+            )
+        }
+        Row(modifier = Modifier.fillMaxSize().weight(0.4f)) {
+            Text(
+                "Average",
+                modifier = Modifier.padding(6.dp, 0.dp),
+                color = MaterialTheme.colorScheme.secondary,
+                autoSize = TextAutoSize.StepBased(),
+                maxLines = 1
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(12.dp))
+                .background(CustomRedTransparent)
+                .weight(1f),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                if (avgTempo != null) tempoFromNanosToHours(avgTempo).toString() else "-",
+                modifier = Modifier.padding(6.dp, 0.dp).weight(0.5f),
+                autoSize = TextAutoSize.StepBased(),
+                maxLines = 1
+            )
+            Text(
+                avgTempoEstimatedGoalTime?.format(timeFormat) ?: "∞",
+                modifier = Modifier.padding(6.dp, 0.dp).weight(0.5f),
                 autoSize = TextAutoSize.StepBased(),
                 maxLines = 1
             )
@@ -194,12 +268,21 @@ fun TempoStatsComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier
 
 @Composable
 fun TempoChartComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier) {
+    val indicatorShape = ShapeComponent(
+        Fill(MaterialTheme.colorScheme.background),
+        RoundedCornerShape(100),
+        Insets.Zero,
+        Fill(CustomBlue),
+        2.dp,
+        emptyList(),
+    )
+
     CartesianChartHost(
         rememberCartesianChart(
             rememberLineCartesianLayer(
                 lineProvider = LineCartesianLayer.LineProvider.series(
                     LineCartesianLayer.rememberLine(
-                        fill = remember { LineCartesianLayer.LineFill.single(Fill(CustomGreen)) },
+                        fill = remember { LineCartesianLayer.LineFill.single(Fill(CustomBlue)) },
                         interpolator = LineCartesianLayer.Interpolator.catmullRom(0f)
                     )
                 )
@@ -216,14 +299,7 @@ fun TempoChartComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier
                 rememberTextComponent(
                     margins = Insets(0.dp, 5.dp)
                 ),
-                indicator = { _ -> ShapeComponent(
-                    Fill(PureWhite),
-                    RoundedCornerShape(100),
-                    Insets.Zero,
-                    Fill(CustomGreen),
-                    2.dp,
-                    emptyList(),
-                ) },
+                indicator = { _ -> indicatorShape },
                 indicatorSize = 10.dp
             )
         ),
