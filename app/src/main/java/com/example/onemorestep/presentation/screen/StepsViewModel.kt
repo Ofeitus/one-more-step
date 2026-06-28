@@ -9,6 +9,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.onemorestep.data.HealthConnectManager
+import com.example.onemorestep.data.stepsAvgTime
+import com.example.onemorestep.data.stepsDurationNanos
+import com.example.onemorestep.data.tempoFromNanosToHours
+import com.patrykandpatrick.vico.compose.cartesian.data.CartesianChartModelProducer
+import com.patrykandpatrick.vico.compose.cartesian.data.lineModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -18,13 +23,19 @@ import java.time.ZoneOffset
 import kotlin.time.Duration.Companion.milliseconds
 
 class StepsViewModel(private val healthConnectManager: HealthConnectManager) : ViewModel() {
-    var isGranted by mutableStateOf(false)
-        private set
+    private val lastTempoSeconds = 5 * 60
+
     var stepsCount by mutableStateOf<Long?>(null)
         private set
     var goal by mutableStateOf<Long?>(100000)
         private set
-    var percent by mutableStateOf<Double?>(null)
+    var avgTempo by mutableStateOf<Double?>(null)
+        private set
+    var lastTempo by mutableStateOf<Double?>(null)
+        private set
+    var avgTempoEstimatedGoalTime by mutableStateOf<LocalDateTime?>(null)
+        private set
+    var lastTempoEstimatedGoalTime by mutableStateOf<LocalDateTime?>(null)
         private set
 
     val permissions = setOf(
@@ -32,6 +43,8 @@ class StepsViewModel(private val healthConnectManager: HealthConnectManager) : V
         HealthPermission.PERMISSION_READ_HEALTH_DATA_IN_BACKGROUND,
         HealthPermission.PERMISSION_READ_HEALTH_DATA_HISTORY
     )
+
+    val chartModelProducer = CartesianChartModelProducer()
 
     init {
         startReadingTask()
@@ -46,17 +59,56 @@ class StepsViewModel(private val healthConnectManager: HealthConnectManager) : V
         }
     }
 
-    private fun checkPermissionsAndReadSteps() {
+    fun checkPermissionsAndReadSteps() {
         viewModelScope.launch {
-            isGranted = healthConnectManager.hasAllPermissions(permissions)
-            if (!isGranted) {
+            if (!healthConnectManager.hasAllPermissions(permissions)) {
                 return@launch
             }
 
-            val todayStart = LocalDate.now().atStartOfDay().toInstant(ZoneOffset.UTC)
-            val now = LocalDateTime.now().toInstant(ZoneOffset.UTC)
-            stepsCount = healthConnectManager.readSteps(todayStart, now).sumOf { it.count }
-            percent = stepsCount!!.toDouble() * 100 / goal!!
+            val stepsRecords = healthConnectManager.readSteps(
+                LocalDate.now().minusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC),
+                LocalDateTime.now().toInstant(ZoneOffset.UTC)
+            )
+
+            val totalSteppingTime = stepsRecords.stream()
+                .mapToLong { record -> stepsDurationNanos(record) }
+                .sum()
+            var lastStepsCount = 0L
+            var lastSteppingTime = 0L
+            for (i in stepsRecords.size - 1 downTo 0) {
+                val seconds = stepsDurationNanos(stepsRecords[i])
+                if (lastSteppingTime < lastTempoSeconds) {
+                    lastStepsCount += stepsRecords[i].count
+                    lastSteppingTime += seconds
+                }
+            }
+
+            stepsCount = stepsRecords.sumOf { it.count }
+            avgTempo = if (totalSteppingTime > 0) stepsCount!!.toDouble() / totalSteppingTime else 0.0
+            lastTempo = if (lastSteppingTime > 0) lastStepsCount.toDouble() / lastSteppingTime else 0.0
+            val remaining = goal!! - stepsCount!!
+            avgTempoEstimatedGoalTime = if (avgTempo!! > 0) LocalDateTime.now().plusNanos((remaining / avgTempo!!).toLong()) else null
+            lastTempoEstimatedGoalTime = if (lastTempo!! > 0) LocalDateTime.now().plusNanos((remaining / lastTempo!!).toLong()) else null
+
+            chartModelProducer.runTransaction {
+                lineModel {
+                    if (stepsRecords.isEmpty()) {
+                        series(0)
+                        return@lineModel
+                    }
+                    var xValues = mutableListOf<Number>()
+                    var yValues = mutableListOf<Number>()
+                    for (i in stepsRecords.indices) {
+                        xValues.add(stepsAvgTime(stepsRecords[i]))
+                        yValues.add(tempoFromNanosToHours(stepsRecords[i].count.toDouble() / stepsDurationNanos(stepsRecords[i])))
+                        if (i < stepsRecords.size - 1 && stepsRecords[i].endTime != stepsRecords[i + 1].startTime) {
+                            series(xValues, yValues)
+                            xValues = mutableListOf()
+                            yValues = mutableListOf()
+                        }
+                    }
+                }
+            }
         }
     }
 }
