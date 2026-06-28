@@ -32,7 +32,9 @@ import com.example.onemorestep.R
 import com.example.onemorestep.data.tempoFromNanosToHours
 import com.example.onemorestep.ui.theme.CustomBlue
 import com.example.onemorestep.ui.theme.CustomBlueTransparent
+import com.example.onemorestep.ui.theme.CustomGreen
 import com.example.onemorestep.ui.theme.CustomGreenTransparent
+import com.example.onemorestep.ui.theme.CustomRed
 import com.example.onemorestep.ui.theme.CustomRedTransparent
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.Zoom
@@ -132,10 +134,10 @@ fun StepsCountComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier
 @Composable
 fun TempoStatsComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier) {
     val targetTempo = viewModel.targetTempo
-    val lastTempo = viewModel.lastTempo
+    val lastTempo = viewModel.currentTempo
     val avgTempo = viewModel.avgTempo
     val targetTempoEstimatedGoalTime = viewModel.targetTempoEstimatedGoalTime
-    val lastTempoEstimatedGoalTime = viewModel.lastTempoEstimatedGoalTime
+    val lastTempoEstimatedGoalTime = viewModel.currentTempoEstimatedGoalTime
     val avgTempoEstimatedGoalTime = viewModel.avgTempoEstimatedGoalTime
 
     Column(
@@ -164,7 +166,7 @@ fun TempoStatsComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier
                 contentDescription = null
             )
             Text(
-                "Estimated time to reach goal",
+                "Estimate",
                 modifier = Modifier.padding(6.dp, 0.dp).weight(0.4f),
                 autoSize = TextAutoSize.StepBased(),
                 maxLines = 2
@@ -272,7 +274,7 @@ fun TempoChartComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier
         Fill(MaterialTheme.colorScheme.background),
         RoundedCornerShape(100),
         Insets.Zero,
-        Fill(CustomBlue),
+        Fill(MaterialTheme.colorScheme.primary),
         2.dp,
         emptyList(),
     )
@@ -282,7 +284,15 @@ fun TempoChartComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier
             rememberLineCartesianLayer(
                 lineProvider = LineCartesianLayer.LineProvider.series(
                     LineCartesianLayer.rememberLine(
+                        fill = remember { LineCartesianLayer.LineFill.single(Fill(CustomGreen)) },
+                        interpolator = LineCartesianLayer.Interpolator.catmullRom(0f)
+                    ),
+                    LineCartesianLayer.rememberLine(
                         fill = remember { LineCartesianLayer.LineFill.single(Fill(CustomBlue)) },
+                        interpolator = LineCartesianLayer.Interpolator.catmullRom(0f)
+                    ),
+                    LineCartesianLayer.rememberLine(
+                        fill = remember { LineCartesianLayer.LineFill.single(Fill(CustomRed)) },
                         interpolator = LineCartesianLayer.Interpolator.catmullRom(0f)
                     )
                 )

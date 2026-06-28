@@ -23,7 +23,7 @@ import java.time.ZoneOffset
 import kotlin.time.Duration.Companion.milliseconds
 
 class StepsViewModel(private val healthConnectManager: HealthConnectManager) : ViewModel() {
-    private val lastTempoSeconds = 5 * 60
+    private val currentTempoSeconds = 5 * 60
 
     var stepsCount by mutableStateOf<Long?>(null)
         private set
@@ -31,13 +31,13 @@ class StepsViewModel(private val healthConnectManager: HealthConnectManager) : V
         private set
     var targetTempo by mutableStateOf<Double?>(6500.0 / 3600000000000)
         private set
-    var lastTempo by mutableStateOf<Double?>(null)
+    var currentTempo by mutableStateOf<Double?>(null)
         private set
     var avgTempo by mutableStateOf<Double?>(null)
         private set
     var targetTempoEstimatedGoalTime by mutableStateOf<LocalDateTime?>(null)
         private set
-    var lastTempoEstimatedGoalTime by mutableStateOf<LocalDateTime?>(null)
+    var currentTempoEstimatedGoalTime by mutableStateOf<LocalDateTime?>(null)
         private set
     var avgTempoEstimatedGoalTime by mutableStateOf<LocalDateTime?>(null)
         private set
@@ -77,24 +77,24 @@ class StepsViewModel(private val healthConnectManager: HealthConnectManager) : V
             val totalSteppingTime = stepsRecords.stream()
                 .mapToLong { record -> stepsDurationNanos(record) }
                 .sum()
-            var lastStepsCount = 0L
-            var lastSteppingTime = 0L
+            var currentStepsCount = 0L
+            var currentSteppingTime = 0L
             for (i in stepsRecords.size - 1 downTo 0) {
                 val seconds = stepsDurationNanos(stepsRecords[i])
-                if (lastSteppingTime < lastTempoSeconds) {
-                    lastStepsCount += stepsRecords[i].count
-                    lastSteppingTime += seconds
+                if (currentSteppingTime < currentTempoSeconds) {
+                    currentStepsCount += stepsRecords[i].count
+                    currentSteppingTime += seconds
                 }
             }
 
             stepsCount = stepsRecords.sumOf { it.count }
 
-            lastTempo = if (lastSteppingTime > 0) lastStepsCount.toDouble() / lastSteppingTime else 0.0
+            currentTempo = if (currentSteppingTime > 0) currentStepsCount.toDouble() / currentSteppingTime else 0.0
             avgTempo = if (totalSteppingTime > 0) stepsCount!!.toDouble() / totalSteppingTime else 0.0
 
             val remaining = goal!! - stepsCount!!
             targetTempoEstimatedGoalTime = if (targetTempo!! > 0) LocalDateTime.now().plusNanos((remaining / targetTempo!!).toLong()) else null
-            lastTempoEstimatedGoalTime = if (lastTempo!! > 0) LocalDateTime.now().plusNanos((remaining / lastTempo!!).toLong()) else null
+            currentTempoEstimatedGoalTime = if (currentTempo!! > 0) LocalDateTime.now().plusNanos((remaining / currentTempo!!).toLong()) else null
             avgTempoEstimatedGoalTime = if (avgTempo!! > 0) LocalDateTime.now().plusNanos((remaining / avgTempo!!).toLong()) else null
 
             chartModelProducer.runTransaction {
@@ -103,17 +103,40 @@ class StepsViewModel(private val healthConnectManager: HealthConnectManager) : V
                         series(0)
                         return@lineModel
                     }
-                    var xValues = mutableListOf<Number>()
-                    var yValues = mutableListOf<Number>()
+
+                    val targetTempoX = mutableListOf<Number>()
+                    val targetTempoY = mutableListOf<Number>()
+
+                    val currentTempoX = mutableListOf<Number>()
+                    val currentTempoY = mutableListOf<Number>()
+
+                    var stepsCountForAvg = 0L
+                    var timeForAvg = 0L
+                    val avgTempoX = mutableListOf<Number>()
+                    val avgTempoY = mutableListOf<Number>()
+
                     for (i in stepsRecords.indices) {
-                        xValues.add(stepsAvgTime(stepsRecords[i]))
-                        yValues.add(tempoFromNanosToHours(stepsRecords[i].count.toDouble() / stepsDurationNanos(stepsRecords[i])))
-                        if (i < stepsRecords.size - 1 && stepsRecords[i].endTime != stepsRecords[i + 1].startTime) {
-                            series(xValues, yValues)
+                        val record = stepsRecords[i]
+                        val time = stepsAvgTime(record)
+
+                        targetTempoX.add(time)
+                        targetTempoY.add(tempoFromNanosToHours(targetTempo!!))
+
+                        currentTempoX.add(time)
+                        currentTempoY.add(tempoFromNanosToHours(record.count.toDouble() / stepsDurationNanos(record)))
+
+                        stepsCountForAvg += record.count
+                        timeForAvg += stepsDurationNanos(record)
+                        avgTempoX.add(time)
+                        avgTempoY.add(tempoFromNanosToHours(stepsCountForAvg.toDouble() / timeForAvg))
+                        /*if (i < stepsRecords.size - 1 && record.endTime != stepsRecords[i + 1].startTime) {
                             xValues = mutableListOf()
                             yValues = mutableListOf()
-                        }
+                        }*/
                     }
+                    series(targetTempoX, targetTempoY)
+                    series(currentTempoX, currentTempoY)
+                    series(avgTempoX, avgTempoY)
                 }
             }
         }
