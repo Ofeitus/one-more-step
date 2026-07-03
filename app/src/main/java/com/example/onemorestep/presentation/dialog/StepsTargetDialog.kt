@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.onemorestep.presentation.screen.StepsViewModel
+import com.example.onemorestep.presentation.viewmodel.StepsViewModel
 import com.example.onemorestep.ui.theme.DarkGray
 import io.github.plovotok.wheelpicker.OverlayConfiguration
 import io.github.plovotok.wheelpicker.WheelPicker

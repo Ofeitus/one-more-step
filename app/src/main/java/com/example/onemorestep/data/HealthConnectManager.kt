@@ -13,41 +13,48 @@ import java.time.Instant
 const val MIN_SUPPORTED_SDK = Build.VERSION_CODES.O_MR1
 
 class HealthConnectManager(private val context: Context) {
-  private val healthConnectClient by lazy { HealthConnectClient.getOrCreate(context) }
+    private val healthConnectClient by lazy { HealthConnectClient.getOrCreate(context) }
 
-  var availability = mutableStateOf(HealthConnectAvailability.NOT_SUPPORTED)
-    private set
+    var availability = mutableStateOf(HealthConnectAvailability.NOT_SUPPORTED)
+        private set
 
-  init {
-    checkAvailability()
-  }
-
-  fun checkAvailability() {
-    availability.value = when {
-      HealthConnectClient.getSdkStatus(context) == SDK_AVAILABLE -> HealthConnectAvailability.INSTALLED
-      isSupported() -> HealthConnectAvailability.NOT_INSTALLED
-      else -> HealthConnectAvailability.NOT_SUPPORTED
+    init {
+        checkAvailability()
     }
-  }
 
-  suspend fun hasAllPermissions(permissions: Set<String>): Boolean {
-    return healthConnectClient.permissionController.getGrantedPermissions().containsAll(permissions)
-  }
+    fun checkAvailability() {
+        try {
+            if (HealthConnectClient.getSdkStatus(context) == SDK_AVAILABLE) {
+                availability.value = HealthConnectAvailability.INSTALLED
+                return
+            }
+            if (isSupported()) {
+                availability.value = HealthConnectAvailability.NOT_INSTALLED
+            }
+        } catch (e: AssertionError) {
+            availability.value = HealthConnectAvailability.NOT_SUPPORTED
+            return
+        }
+    }
 
-  suspend fun readSteps(start: Instant, end: Instant): List<StepsRecord> {
-    val request = ReadRecordsRequest(
-      recordType = StepsRecord::class,
-      timeRangeFilter = TimeRangeFilter.between(start, end)
-    )
-    val response = healthConnectClient.readRecords(request)
-    return response.records
-  }
+    suspend fun hasAllPermissions(permissions: Set<String>): Boolean {
+        return healthConnectClient.permissionController.getGrantedPermissions().containsAll(permissions)
+    }
 
-  private fun isSupported() = Build.VERSION.SDK_INT >= MIN_SUPPORTED_SDK
+    suspend fun readSteps(start: Instant, end: Instant): List<StepsRecord> {
+        val request = ReadRecordsRequest(
+            recordType = StepsRecord::class,
+            timeRangeFilter = TimeRangeFilter.between(start, end)
+        )
+        val response = healthConnectClient.readRecords(request)
+        return response.records
+    }
+
+    private fun isSupported() = Build.VERSION.SDK_INT >= MIN_SUPPORTED_SDK
 }
 
 enum class HealthConnectAvailability {
-  INSTALLED,
-  NOT_INSTALLED,
-  NOT_SUPPORTED
+    INSTALLED,
+    NOT_INSTALLED,
+    NOT_SUPPORTED
 }

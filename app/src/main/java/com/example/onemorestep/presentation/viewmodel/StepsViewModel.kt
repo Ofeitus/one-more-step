@@ -1,4 +1,4 @@
-package com.example.onemorestep.presentation.screen
+package com.example.onemorestep.presentation.viewmodel
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,9 +17,10 @@ import com.patrykandpatrick.vico.compose.cartesian.data.CartesianChartModelProdu
 import com.patrykandpatrick.vico.compose.cartesian.data.lineModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.cache
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Duration
@@ -35,6 +36,9 @@ class StepsViewModel(
     private val settingRepository: SettingRepository
 ) : ViewModel() {
     private val currentTempoSeconds = 5 * 60
+
+    private val _stepsRecords = MutableStateFlow<List<StepsRecord>>(emptyList())
+    val stepsRecords: StateFlow<List<StepsRecord>> = _stepsRecords.asStateFlow()
 
     var stepsCount by mutableStateOf<Long?>(null)
         private set
@@ -102,22 +106,22 @@ class StepsViewModel(
             val atStartOfDay = currentDate.atStartOfDay();
             val now = LocalDateTime.now();
 
-            val stepsRecords = healthConnectManager.readSteps(
+            _stepsRecords.value = healthConnectManager.readSteps(
                 atStartOfDay.toInstant(ZoneOffset.UTC),
                 now.toInstant(ZoneOffset.UTC)
             )
 
             var currentStepsCount = 0L
             var currentSteppingTime = 0L
-            for (i in stepsRecords.size - 1 downTo 0) {
-                val seconds = stepsDurationNanos(stepsRecords[i])
+            for (i in _stepsRecords.value.size - 1 downTo 0) {
+                val seconds = stepsDurationNanos(stepsRecords.value[i])
                 if (currentSteppingTime < currentTempoSeconds) {
-                    currentStepsCount += stepsRecords[i].count
+                    currentStepsCount += stepsRecords.value[i].count
                     currentSteppingTime += seconds
                 }
             }
 
-            stepsCount = stepsRecords.sumOf { it.count }
+            stepsCount = stepsRecords.value.sumOf { it.count }
             var remainingSteps = stepsCount?.let { stepsTarget.value?.minus(it) }
             remainingSteps?.let { if (it < 0) remainingSteps = 0 }
 
@@ -146,7 +150,7 @@ class StepsViewModel(
 
             chartModelProducer.runTransaction {
                 lineModel {
-                    val stack = ArrayDeque(stepsRecords)
+                    val stack = ArrayDeque(stepsRecords.value)
                     var stepsCount = 0L
                     val targetTempoX = mutableListOf<Number>()
                     val targetTempoY = mutableListOf<Number>()

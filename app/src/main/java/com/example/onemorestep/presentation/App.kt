@@ -1,0 +1,116 @@
+package com.example.onemorestep.presentation
+
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.example.onemorestep.R
+import com.example.onemorestep.data.HealthConnectManager
+import com.example.onemorestep.data.SettingRepository
+import com.example.onemorestep.presentation.screen.HistoryScreen
+import com.example.onemorestep.presentation.screen.StepsScreen
+import com.example.onemorestep.presentation.viewmodel.StepsViewModel
+import com.example.onemorestep.presentation.viewmodel.StepsViewModelFactory
+import com.example.onemorestep.ui.theme.BWTheme
+
+sealed class Screen(val route: String, val title: String) {
+    object Home : Screen("home", "Home")
+    object History : Screen("profile", "History")
+}
+
+@Composable
+fun App(healthConnectManager: HealthConnectManager, settingRepository: SettingRepository) {
+    val navController = rememberNavController()
+    val items = listOf(Screen.Home, Screen.History)
+
+    val stepsViewModel: StepsViewModel = viewModel(
+        factory = StepsViewModelFactory(healthConnectManager, settingRepository)
+    )
+
+    BWTheme {
+        Scaffold(
+            bottomBar = {
+                NavigationBar(
+                    containerColor = Color.Transparent
+                ) {
+                    val navBackStackEntry by navController.currentBackStackEntryAsState()
+                    val currentRoute = navBackStackEntry?.destination?.route
+
+                    items.forEach { screen ->
+                        NavigationBarItem(
+                            icon = { Icon(
+                                painterResource(R.drawable.vscode_codicons_edit),
+                                contentDescription = screen.title
+                            ) },
+                            label = { Text(screen.title) },
+                            selected = currentRoute == screen.route,
+                            onClick = {
+                                if (currentRoute != screen.route) {
+                                    navController.navigate(screen.route) {
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                            },
+                            colors = NavigationBarItemDefaults.colors().copy(
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                selectedIconColor = MaterialTheme.colorScheme.background,
+                                selectedIndicatorColor = MaterialTheme.colorScheme.primary,
+                                unselectedTextColor = MaterialTheme.colorScheme.primary,
+                                unselectedIconColor = MaterialTheme.colorScheme.primary,
+                            )
+                        )
+                    }
+                }
+            }
+        ) { innerPadding ->
+            NavHost(
+                navController = navController,
+                startDestination = Screen.Home.route,
+                modifier = Modifier.padding(innerPadding),
+                enterTransition = { EnterTransition.None },
+                exitTransition = { ExitTransition.None },
+                popEnterTransition = { EnterTransition.None },
+                popExitTransition = { ExitTransition.None }
+            ) {
+                composable(Screen.Home.route) {
+                    StepsScreen(stepsViewModel)
+                }
+                composable(Screen.History.route) {
+                    HistoryScreen(stepsViewModel)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+@Preview
+fun AppPreview() {
+    App(HealthConnectManager(LocalContext.current), SettingRepository(LocalContext.current))
+}

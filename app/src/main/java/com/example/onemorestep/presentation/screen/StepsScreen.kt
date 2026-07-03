@@ -6,12 +6,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
@@ -33,8 +30,10 @@ import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.onemorestep.R
 import com.example.onemorestep.data.tempoFromNanosToHours
+import com.example.onemorestep.data.timeFormat
 import com.example.onemorestep.presentation.dialog.StepsTargetDialog
 import com.example.onemorestep.presentation.dialog.TargetTimeDialog
+import com.example.onemorestep.presentation.viewmodel.StepsViewModel
 import com.example.onemorestep.ui.theme.CustomBlue
 import com.example.onemorestep.ui.theme.CustomGreen
 import com.example.onemorestep.ui.theme.CustomRed
@@ -61,8 +60,6 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-val timeFormat: DateTimeFormatter? = DateTimeFormatter.ofPattern("H:mm")
-
 @Composable
 fun StepsScreen(viewModel: StepsViewModel) {
 
@@ -77,12 +74,12 @@ fun StepsScreen(viewModel: StepsViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .windowInsetsPadding(WindowInsets.systemBars)
             .padding(8.dp)
     ) {
         if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
             Column(
                 modifier = Modifier.fillMaxSize().weight(3f),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 StepsCountComponent(viewModel, modifier = Modifier.weight(0.5f))
                 TempoStatsComponent(viewModel, modifier = Modifier.weight(0.5f))
@@ -177,10 +174,10 @@ fun TempoStatsComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier
 
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(
-            modifier = Modifier.weight(0.4f),
+            modifier = Modifier.weight(0.6f),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -205,7 +202,7 @@ fun TempoStatsComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier
                 "Current",
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(100))
                     .background(CustomBlue)
                     .padding(8.dp, 0.dp)
                     .wrapContentHeight(align = Alignment.CenterVertically)
@@ -235,7 +232,7 @@ fun TempoStatsComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier
                 "Target",
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(100))
                     .background(CustomGreen)
                     .padding(8.dp, 0.dp)
                     .wrapContentHeight(align = Alignment.CenterVertically)
@@ -265,7 +262,7 @@ fun TempoStatsComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier
                 "Average",
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(24.dp))
+                    .clip(RoundedCornerShape(100))
                     .background(CustomRed)
                     .padding(8.dp, 0.dp)
                     .wrapContentHeight(align = Alignment.CenterVertically)
