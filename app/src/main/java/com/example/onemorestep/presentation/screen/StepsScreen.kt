@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,15 +30,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.health.connect.client.PermissionController
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.onemorestep.R
 import com.example.onemorestep.data.tempoFromNanosToHours
+import com.example.onemorestep.presentation.dialog.StepsTargetDialog
+import com.example.onemorestep.presentation.dialog.TargetTimeDialog
 import com.example.onemorestep.ui.theme.CustomBlue
-import com.example.onemorestep.ui.theme.CustomBlueTransparent
 import com.example.onemorestep.ui.theme.CustomGreen
-import com.example.onemorestep.ui.theme.CustomGreenTransparent
 import com.example.onemorestep.ui.theme.CustomRed
-import com.example.onemorestep.ui.theme.CustomRedTransparent
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
+import com.patrykandpatrick.vico.compose.cartesian.Scroll
 import com.patrykandpatrick.vico.compose.cartesian.Zoom
 import com.patrykandpatrick.vico.compose.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.VerticalAxis
@@ -47,6 +50,7 @@ import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLa
 import com.patrykandpatrick.vico.compose.cartesian.marker.CartesianMarkerController
 import com.patrykandpatrick.vico.compose.cartesian.marker.rememberDefaultCartesianMarker
 import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
+import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.compose.cartesian.rememberVicoZoomState
 import com.patrykandpatrick.vico.compose.common.Fill
 import com.patrykandpatrick.vico.compose.common.Insets
@@ -74,16 +78,18 @@ fun StepsScreen(viewModel: StepsViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .windowInsetsPadding(WindowInsets.systemBars)
-            .padding(12.dp)
+            .padding(8.dp)
     ) {
         if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            Column(modifier = Modifier.fillMaxSize().weight(0.6f)) {
+            Column(
+                modifier = Modifier.fillMaxSize().weight(3f),
+            ) {
                 StepsCountComponent(viewModel, modifier = Modifier.weight(0.5f))
                 TempoStatsComponent(viewModel, modifier = Modifier.weight(0.5f))
             }
         } else {
             Row(
-                modifier = Modifier.fillMaxSize().weight(0.6f),
+                modifier = Modifier.fillMaxSize().weight(3f),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 StepsCountComponent(viewModel, modifier = Modifier.weight(0.5f))
@@ -91,176 +97,191 @@ fun StepsScreen(viewModel: StepsViewModel) {
             }
         }
 
-        TempoChartComponent(viewModel, modifier = Modifier.fillMaxSize().weight(0.4f))
+        TempoChartComponent(viewModel, modifier = Modifier.fillMaxSize().weight(2f))
     }
 }
 
 @Composable
 fun StepsCountComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier) {
     val stepsCount = viewModel.stepsCount
-    val goal = viewModel.goal
 
     Column(
         modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().weight(0.6f),
-            horizontalArrangement = Arrangement.SpaceAround
+            horizontalArrangement = Arrangement.Start
         ) {
-            Icon(
-                painterResource(R.drawable.material_symbols_steps),
-                modifier = Modifier.fillMaxSize().weight(0.15f),
-                contentDescription = null
-            )
             Text(
                 stepsCount?.toString() ?: "-",
-                modifier = Modifier.padding(12.dp, 0.dp, 0.dp, 0.dp).weight(0.85f),
-                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(12.dp, 0.dp),
+                textAlign = TextAlign.Left,
                 autoSize = TextAutoSize.StepBased(),
                 maxLines = 1
             )
         }
-        Text(
-            "/$goal",
-            modifier = Modifier.weight(0.4f),
-            autoSize = TextAutoSize.StepBased(),
-            color = MaterialTheme.colorScheme.secondary,
-            maxLines = 1
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth().weight(0.4f),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Target steps", color = MaterialTheme.colorScheme.secondary)
+                Text(
+                    "/${viewModel.stepsTarget.collectAsStateWithLifecycle().value ?: "-"}",
+                    autoSize = TextAutoSize.StepBased(),
+                    maxLines = 1
+                )
+            }
+            IconButton(
+                onClick = { viewModel.openTargetDialog() },
+                content = {
+                    Icon(
+                        painterResource(R.drawable.vscode_codicons_edit),
+                        contentDescription = null
+                    )
+                }
+            )
+            Column(modifier = Modifier.padding(12.dp, 0.dp, 0.dp, 0.dp).weight(1f)) {
+                Text("Target time", color = MaterialTheme.colorScheme.secondary)
+                Text(
+                    viewModel.targetTime.collectAsStateWithLifecycle().value?.format(timeFormat) ?: "-",
+                    autoSize = TextAutoSize.StepBased(),
+                    maxLines = 1
+                )
+            }
+            IconButton(
+                onClick = { viewModel.openTargetTimeDialog() },
+                content = {
+                    Icon(
+                        painterResource(R.drawable.vscode_codicons_edit),
+                        contentDescription = null
+                    )
+                }
+            )
+            StepsTargetDialog(viewModel)
+            TargetTimeDialog(viewModel)
+        }
     }
 }
 
 @Composable
 fun TempoStatsComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier) {
+    val currentTempo = viewModel.currentTempo
     val targetTempo = viewModel.targetTempo
-    val lastTempo = viewModel.currentTempo
     val avgTempo = viewModel.avgTempo
-    val targetTempoEstimatedGoalTime = viewModel.targetTempoEstimatedGoalTime
-    val lastTempoEstimatedGoalTime = viewModel.currentTempoEstimatedGoalTime
+    val currentTempoEstimatedGoalTime = viewModel.currentTempoEstimatedGoalTime
+    val targetTime = viewModel.targetTime
     val avgTempoEstimatedGoalTime = viewModel.avgTempoEstimatedGoalTime
 
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(3.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxSize().weight(1f),
-            horizontalArrangement = Arrangement.SpaceAround,
+            modifier = Modifier.weight(0.4f),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                painterResource(R.drawable.material_icons_speed),
-                modifier = Modifier.fillMaxSize().weight(0.1f),
-                contentDescription = null
-            )
+            Text("", modifier = Modifier.weight(1f))
             Text(
                 "Tempo",
-                modifier = Modifier.padding(6.dp, 0.dp).weight(0.4f),
-                autoSize = TextAutoSize.StepBased(),
-                maxLines = 1
-            )
-            Icon(
-                painterResource(R.drawable.lucide_timer),
-                modifier = Modifier.fillMaxSize().weight(0.1f),
-                contentDescription = null
+                modifier = Modifier.weight(1f),
+                color = MaterialTheme.colorScheme.secondary
             )
             Text(
                 "Estimate",
-                modifier = Modifier.padding(6.dp, 0.dp).weight(0.4f),
-                autoSize = TextAutoSize.StepBased(),
-                maxLines = 2
-            )
-        }
-        Row(modifier = Modifier.fillMaxSize().weight(0.4f)) {
-            Text(
-                "Target",
-                modifier = Modifier.padding(6.dp, 0.dp),
-                color = MaterialTheme.colorScheme.secondary,
-                autoSize = TextAutoSize.StepBased(),
-                maxLines = 1
+                modifier = Modifier.weight(1f),
+                color = MaterialTheme.colorScheme.secondary
             )
         }
         Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(12.dp))
-                .background(CustomGreenTransparent)
-                .weight(1f),
-            horizontalArrangement = Arrangement.SpaceAround,
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                if (targetTempo != null) tempoFromNanosToHours(targetTempo).toString() else "-",
-                modifier = Modifier.padding(6.dp, 0.dp).weight(0.5f),
-                autoSize = TextAutoSize.StepBased(),
-                maxLines = 1
-            )
-            Text(
-                targetTempoEstimatedGoalTime?.format(timeFormat) ?: "∞",
-                modifier = Modifier.padding(6.dp, 0.dp).weight(0.5f),
-                autoSize = TextAutoSize.StepBased(),
-                maxLines = 1
-            )
-        }
-        Row(modifier = Modifier.fillMaxSize().weight(0.4f)) {
             Text(
                 "Current",
-                modifier = Modifier.padding(6.dp, 0.dp),
-                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(CustomBlue)
+                    .padding(8.dp, 0.dp)
+                    .wrapContentHeight(align = Alignment.CenterVertically)
+                    .weight(1f),
+                autoSize = TextAutoSize.StepBased(),
+                maxLines = 1
+            )
+            Text(
+                if (currentTempo != null) tempoFromNanosToHours(currentTempo).toString() else "-",
+                modifier = Modifier.weight(1f),
+                autoSize = TextAutoSize.StepBased(),
+                maxLines = 1
+            )
+            Text(
+                currentTempoEstimatedGoalTime?.format(timeFormat) ?: "-",
+                modifier = Modifier.weight(1f),
                 autoSize = TextAutoSize.StepBased(),
                 maxLines = 1
             )
         }
         Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(12.dp))
-                .background(CustomBlueTransparent)
-                .weight(1f),
-            horizontalArrangement = Arrangement.SpaceAround,
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                if (lastTempo != null) tempoFromNanosToHours(lastTempo).toString() else "-",
-                modifier = Modifier.padding(6.dp, 0.dp).weight(0.5f),
+                "Target",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(CustomGreen)
+                    .padding(8.dp, 0.dp)
+                    .wrapContentHeight(align = Alignment.CenterVertically)
+                    .weight(1f),
                 autoSize = TextAutoSize.StepBased(),
                 maxLines = 1
             )
             Text(
-                lastTempoEstimatedGoalTime?.format(timeFormat) ?: "∞",
-                modifier = Modifier.padding(6.dp, 0.dp).weight(0.5f),
+                if (targetTempo != null) tempoFromNanosToHours(targetTempo).toString() else "-",
+                modifier = Modifier.weight(1f),
+                autoSize = TextAutoSize.StepBased(),
+                maxLines = 1
+            )
+            Text(
+                targetTime.collectAsStateWithLifecycle().value?.format(timeFormat) ?: "-",
+                modifier = Modifier.weight(1f),
                 autoSize = TextAutoSize.StepBased(),
                 maxLines = 1
             )
         }
-        Row(modifier = Modifier.fillMaxSize().weight(0.4f)) {
+        Row(
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
                 "Average",
-                modifier = Modifier.padding(6.dp, 0.dp),
-                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(CustomRed)
+                    .padding(8.dp, 0.dp)
+                    .wrapContentHeight(align = Alignment.CenterVertically)
+                    .weight(1f),
                 autoSize = TextAutoSize.StepBased(),
                 maxLines = 1
             )
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(12.dp))
-                .background(CustomRedTransparent)
-                .weight(1f),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
             Text(
                 if (avgTempo != null) tempoFromNanosToHours(avgTempo).toString() else "-",
-                modifier = Modifier.padding(6.dp, 0.dp).weight(0.5f),
+                modifier = Modifier.weight(1f),
                 autoSize = TextAutoSize.StepBased(),
                 maxLines = 1
             )
             Text(
-                avgTempoEstimatedGoalTime?.format(timeFormat) ?: "∞",
-                modifier = Modifier.padding(6.dp, 0.dp).weight(0.5f),
+                avgTempoEstimatedGoalTime?.format(timeFormat) ?: "-",
+                modifier = Modifier.weight(1f),
                 autoSize = TextAutoSize.StepBased(),
                 maxLines = 1
             )
@@ -288,10 +309,6 @@ fun TempoChartComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier
                         interpolator = LineCartesianLayer.Interpolator.catmullRom(0f)
                     ),
                     LineCartesianLayer.rememberLine(
-                        fill = remember { LineCartesianLayer.LineFill.single(Fill(CustomBlue)) },
-                        interpolator = LineCartesianLayer.Interpolator.catmullRom(0f)
-                    ),
-                    LineCartesianLayer.rememberLine(
                         fill = remember { LineCartesianLayer.LineFill.single(Fill(CustomRed)) },
                         interpolator = LineCartesianLayer.Interpolator.catmullRom(0f)
                     )
@@ -304,17 +321,21 @@ fun TempoChartComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier
                         .format(timeFormat)
                 }
             ),
-            markerController = CartesianMarkerController.rememberToggleOnTap(),
             marker = rememberDefaultCartesianMarker(
                 rememberTextComponent(
                     margins = Insets(0.dp, 5.dp)
                 ),
                 indicator = { _ -> indicatorShape },
                 indicatorSize = 10.dp
-            )
+            ),
+            markerController = CartesianMarkerController.rememberToggleOnTap(),
+            getXStep = { _, _, _ -> 5.0 * 60 * 1000 }
         ),
         remember { viewModel.chartModelProducer },
-        zoomState = rememberVicoZoomState(initialZoom = Zoom.Content),
+        scrollState = rememberVicoScrollState(initialScroll = Scroll.Absolute.End),
+        zoomState = rememberVicoZoomState(initialZoom = Zoom.fixed(0.66f)),
+        animationSpec = null,
+        animateIn = false,
         modifier = modifier
     )
 }

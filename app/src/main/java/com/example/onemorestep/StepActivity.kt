@@ -10,6 +10,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.onemorestep.data.HealthConnectManager
+import com.example.onemorestep.data.SettingRepository
 import com.example.onemorestep.presentation.screen.StepsScreen
 import com.example.onemorestep.presentation.screen.StepsViewModelFactory
 import com.example.onemorestep.ui.theme.BWTheme
@@ -28,7 +29,8 @@ class StepActivity : ComponentActivity() {
                 ) {
                     StepsScreen(viewModel(
                         factory = StepsViewModelFactory(
-                            healthConnectManager = HealthConnectManager(this)
+                            HealthConnectManager(this),
+                            SettingRepository(this)
                         )
                     ))
                 }
