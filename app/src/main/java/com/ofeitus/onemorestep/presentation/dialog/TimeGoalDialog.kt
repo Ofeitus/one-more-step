@@ -1,5 +1,6 @@
 package com.ofeitus.onemorestep.presentation.dialog
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
@@ -14,12 +15,13 @@ import com.ofeitus.onemorestep.presentation.viewmodel.StepsViewModel
 import com.ofeitus.onemorestep.ui.theme.DarkGray
 import com.ofeitus.onemorestep.presentation.component.TimerPicker
 import com.ofeitus.onemorestep.presentation.component.rememberTimerPickerState
+import com.ofeitus.onemorestep.ui.theme.LightGray
 import java.time.LocalTime
 
 @Composable
-fun TargetTimeDialog(viewModel: StepsViewModel) {
-    if (viewModel.showTargetTimeDialog) {
-        val time = viewModel.targetTime.collectAsStateWithLifecycle().value
+fun TimeGoalDialog(viewModel: StepsViewModel) {
+    if (viewModel.showTimeGoalDialog) {
+        val time = viewModel.timeGoal.collectAsStateWithLifecycle().value
         val timerPickerState = if (time == null)
             rememberTimerPickerState()
         else
@@ -31,11 +33,11 @@ fun TargetTimeDialog(viewModel: StepsViewModel) {
 
         MaterialTheme(
             colorScheme = MaterialTheme.colorScheme.copy(
-                background = DarkGray
+                background = if (isSystemInDarkTheme()) DarkGray else LightGray
             )
         ) {
             AlertDialog(
-                onDismissRequest = { viewModel.dismissTargetTimeDialog() },
+                onDismissRequest = { viewModel.dismissTimeGoalDialog() },
                 text = {
                     Column(
                         modifier = Modifier.fillMaxWidth()
@@ -46,8 +48,8 @@ fun TargetTimeDialog(viewModel: StepsViewModel) {
                 confirmButton = {
                     Button(
                         onClick = {
-                            viewModel.updateTargetTime(LocalTime.ofSecondOfDay(selectedSeconds.toLong()))
-                            viewModel.dismissTargetTimeDialog()
+                            viewModel.updateTimeGoal(LocalTime.ofSecondOfDay(selectedSeconds.toLong()))
+                            viewModel.dismissTimeGoalDialog()
                         }
                     ) {
                         Text("Save")
@@ -55,7 +57,7 @@ fun TargetTimeDialog(viewModel: StepsViewModel) {
                 },
                 dismissButton = {
                     TextButton(
-                        onClick = { viewModel.dismissTargetTimeDialog() }
+                        onClick = { viewModel.dismissTimeGoalDialog() }
                     ) {
                         Text("Cancel")
                     }

@@ -12,7 +12,7 @@ import com.ofeitus.onemorestep.data.HealthConnectManager
 import com.ofeitus.onemorestep.data.SettingRepository
 import com.ofeitus.onemorestep.data.localEndTime
 import com.ofeitus.onemorestep.data.stepsDurationNanos
-import com.ofeitus.onemorestep.data.tempoFromNanosToHours
+import com.ofeitus.onemorestep.data.paceFromNanosToHours
 import com.patrykandpatrick.vico.compose.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.compose.cartesian.data.lineModel
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +35,7 @@ class StepsViewModel(
     private val healthConnectManager: HealthConnectManager,
     private val settingRepository: SettingRepository
 ) : ViewModel() {
-    private val currentTempoSeconds = 5 * 60
+    private val currentPaceSeconds = 5 * 60
 
     var currentDate by mutableStateOf<LocalDate>(LocalDate.now())
         private set
@@ -46,33 +46,33 @@ class StepsViewModel(
     var stepsCount by mutableStateOf<Long?>(null)
         private set
 
-    val stepsTarget: StateFlow<Long?> = settingRepository.stepsTargetFlow
+    val stepsGoal: StateFlow<Long?> = settingRepository.stepsGoalFlow
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
             initialValue = null
         )
-    val stepsTargetList = buildList {
+    val stepsGoalList = buildList {
         repeat(100) { add(1000L * (it + 1)) }
     }
-    var showStepsTargetDialog by mutableStateOf(false)
+    var showStepsGoalDialog by mutableStateOf(false)
         private set
 
-    var targetTime: StateFlow<LocalTime?> = settingRepository.targetTimeFlow
+    var timeGoal: StateFlow<LocalTime?> = settingRepository.timeGoalFlow
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
             initialValue = null
         )
-    var showTargetTimeDialog by mutableStateOf(false)
+    var showTimeGoalDialog by mutableStateOf(false)
         private set
 
-    var currentTempo by mutableStateOf<Double?>(null)
+    var currentPace by mutableStateOf<Double?>(null)
         private set
-    var avgTempoEstimatedGoalTime by mutableStateOf<LocalDateTime?>(null)
+    var avgPaceEstimatedGoalTime by mutableStateOf<LocalDateTime?>(null)
         private set
 
-    var targetTempo by mutableStateOf<Double?>(null)
+    var targetPace by mutableStateOf<Double?>(null)
         private set
 
     val permissions = setOf(
@@ -115,42 +115,42 @@ class StepsViewModel(
             var currentSteppingTime = 0L
             for (i in _stepsRecords.value.size - 1 downTo 0) {
                 val seconds = stepsDurationNanos(stepsRecords.value[i])
-                if (currentSteppingTime < currentTempoSeconds) {
+                if (currentSteppingTime < currentPaceSeconds) {
                     currentStepsCount += stepsRecords.value[i].count
                     currentSteppingTime += seconds
                 }
             }
 
             stepsCount = stepsRecords.value.sumOf { it.count }
-            var remainingSteps = stepsCount?.let { stepsTarget.value?.minus(it) }
+            var remainingSteps = stepsCount?.let { stepsGoal.value?.minus(it) }
             remainingSteps?.let { if (it < 0) remainingSteps = 0 }
 
             val passedTime = Duration.between(atStartOfDay, now).toNanos()
-            val remainingTime = if (targetTime.value == null)
+            val remainingTime = if (timeGoal.value == null)
                 null
             else
-                Duration.between(now, currentDate.atTime(targetTime.value)).toNanos()
+                Duration.between(now, currentDate.atTime(timeGoal.value)).toNanos()
 
-            currentTempo = if (currentSteppingTime > 0) currentStepsCount.toDouble() / currentSteppingTime else null
-            targetTempo = if (remainingTime == null || remainingTime <= 0)
+            currentPace = if (currentSteppingTime > 0) currentStepsCount.toDouble() / currentSteppingTime else null
+            targetPace = if (remainingTime == null || remainingTime <= 0)
                 null
             else
                 remainingSteps?.toDouble()?.div(remainingTime)
-            targetTempo?.let { if (it < 0) targetTempo = 0.0 }
-            val avgTempo = if (passedTime > 0) stepsCount?.toDouble()?.div(passedTime) else null
+            targetPace?.let { if (it < 0) targetPace = 0.0 }
+            val avgPace = if (passedTime > 0) stepsCount?.toDouble()?.div(passedTime) else null
 
-            avgTempoEstimatedGoalTime = if (remainingSteps == null || remainingSteps == 0L || avgTempo == null)
+            avgPaceEstimatedGoalTime = if (remainingSteps == null || remainingSteps == 0L || avgPace == null)
                 null
             else
-                now.plusNanos((remainingSteps / avgTempo).toLong())
+                now.plusNanos((remainingSteps / avgPace).toLong())
 
             chartModelProducer.runTransaction {
                 lineModel {
                     val stack = ArrayDeque(stepsRecords.value)
                     var stepsCount = 0L
                     val x = mutableListOf<Number>()
-                    val targetTempoY = mutableListOf<Number>()
-                    val avgTempoY = mutableListOf<Number>()
+                    val targetPaceY = mutableListOf<Number>()
+                    val avgPaceY = mutableListOf<Number>()
 
                     val timeTicks = mutableListOf<LocalDateTime>()
                     var time = atStartOfDay
@@ -168,43 +168,43 @@ class StepsViewModel(
 
                         x.add(time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
 
-                        targetTempoY.add(tempoFromNanosToHours(targetTempo ?: 0.0))
-                        avgTempoY.add(tempoFromNanosToHours(if (passedTime > 0) stepsCount.toDouble() / passedTime else 0.0))
+                        targetPaceY.add(paceFromNanosToHours(targetPace ?: 0.0))
+                        avgPaceY.add(paceFromNanosToHours(if (passedTime > 0) stepsCount.toDouble() / passedTime else 0.0))
                     }
 
-                    series(x, targetTempoY)
-                    series(x, avgTempoY)
+                    series(x, targetPaceY)
+                    series(x, avgPaceY)
                 }
             }
         }
     }
 
-    fun openTargetDialog() {
-        showStepsTargetDialog = true
+    fun openStepsGoalDialog() {
+        showStepsGoalDialog = true
     }
 
-    fun dismissTargetDialog() {
-        showStepsTargetDialog = false
+    fun dismissStepsGoalDialog() {
+        showStepsGoalDialog = false
     }
 
-    fun openTargetTimeDialog() {
-        showTargetTimeDialog = true
+    fun openTimeGoalDialog() {
+        showTimeGoalDialog = true
     }
 
-    fun dismissTargetTimeDialog() {
-        showTargetTimeDialog = false
+    fun dismissTimeGoalDialog() {
+        showTimeGoalDialog = false
     }
 
-    fun updateStepsTarget(newStepsTarget: Long) {
+    fun updateStepsGoal(newStepsGoal: Long) {
         viewModelScope.launch {
-            settingRepository.saveStepsTarget(newStepsTarget)
+            settingRepository.saveStepsGoal(newStepsGoal)
             calculateData()
         }
     }
 
-    fun updateTargetTime(newTime: LocalTime) {
+    fun updateTimeGoal(newTimeGoal: LocalTime) {
         viewModelScope.launch {
-            settingRepository.saveTargetTime(newTime)
+            settingRepository.saveTimeGoal(newTimeGoal)
             calculateData()
         }
     }

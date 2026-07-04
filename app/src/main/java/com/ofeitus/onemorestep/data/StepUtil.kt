@@ -12,8 +12,8 @@ fun stepsDurationNanos(record: StepsRecord): Long {
     return Duration.between(record.startTime.atZone(record.startZoneOffset), record.endTime.atZone(record.endZoneOffset)).toNanos()
 }
 
-fun tempoFromNanosToHours(tempo: Double): Long {
-    return (tempo * 3600000000000).toLong()
+fun paceFromNanosToHours(pace: Double): Long {
+    return (pace * 3600000000000).toLong()
 }
 
 fun localEndTime(record: StepsRecord): LocalDateTime {

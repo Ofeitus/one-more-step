@@ -1,5 +1,6 @@
 package com.ofeitus.onemorestep.presentation.dialog
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
@@ -13,33 +14,34 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ofeitus.onemorestep.presentation.viewmodel.StepsViewModel
 import com.ofeitus.onemorestep.ui.theme.DarkGray
+import com.ofeitus.onemorestep.ui.theme.LightGray
 import io.github.plovotok.wheelpicker.OverlayConfiguration
 import io.github.plovotok.wheelpicker.WheelPicker
 import io.github.plovotok.wheelpicker.rememberWheelPickerState
 
 @Composable
-fun StepsTargetDialog(viewModel: StepsViewModel) {
-    if (viewModel.showStepsTargetDialog) {
-        val index = viewModel.stepsTargetList.indexOf(viewModel.stepsTarget.collectAsStateWithLifecycle().value)
+fun StepsGoalDialog(viewModel: StepsViewModel) {
+    if (viewModel.showStepsGoalDialog) {
+        val index = viewModel.stepsGoalList.indexOf(viewModel.stepsGoal.collectAsStateWithLifecycle().value)
         val pickerState = rememberWheelPickerState(
             initialIndex = if (index != -1) index else 0,
             infinite = false
         )
-        val selectedIndex = pickerState.selectedItemIndex(viewModel.stepsTargetList.size)
+        val selectedIndex = pickerState.selectedItemIndex(viewModel.stepsGoalList.size)
 
         MaterialTheme(
             colorScheme = MaterialTheme.colorScheme.copy(
-                background = DarkGray
+                background = if (isSystemInDarkTheme()) DarkGray else LightGray
             )
         ) {
             AlertDialog(
-                onDismissRequest = { viewModel.dismissTargetDialog() },
+                onDismissRequest = { viewModel.dismissStepsGoalDialog() },
                 text = {
                     Column(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         WheelPicker(
-                            data = viewModel.stepsTargetList,
+                            data = viewModel.stepsGoalList,
                             state = pickerState,
                             overlay = OverlayConfiguration.create(
                                 scrimColor = MaterialTheme.colorScheme.background.copy(alpha = 0.7f),
@@ -49,7 +51,7 @@ fun StepsTargetDialog(viewModel: StepsViewModel) {
                             itemHeightDp = 34.dp,
                             itemContent = {
                                 Text(
-                                    text = viewModel.stepsTargetList[it].toString(),
+                                    text = viewModel.stepsGoalList[it].toString(),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onBackground,
                                 )
@@ -60,8 +62,8 @@ fun StepsTargetDialog(viewModel: StepsViewModel) {
                 confirmButton = {
                     Button(
                         onClick = {
-                            viewModel.updateStepsTarget(viewModel.stepsTargetList[selectedIndex])
-                            viewModel.dismissTargetDialog()
+                            viewModel.updateStepsGoal(viewModel.stepsGoalList[selectedIndex])
+                            viewModel.dismissStepsGoalDialog()
                         }
                     ) {
                         Text("Save")
@@ -69,7 +71,7 @@ fun StepsTargetDialog(viewModel: StepsViewModel) {
                 },
                 dismissButton = {
                     TextButton(
-                        onClick = { viewModel.dismissTargetDialog() }
+                        onClick = { viewModel.dismissStepsGoalDialog() }
                     ) {
                         Text("Cancel")
                     }

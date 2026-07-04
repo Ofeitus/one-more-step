@@ -2,12 +2,16 @@ package com.ofeitus.onemorestep.presentation.screen
 
 import android.content.res.Configuration
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Icon
@@ -19,6 +23,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
@@ -29,10 +34,11 @@ import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ofeitus.onemorestep.R
 import com.ofeitus.onemorestep.data.dateTimeFormat
-import com.ofeitus.onemorestep.data.tempoFromNanosToHours
+import com.ofeitus.onemorestep.data.paceFromNanosToHours
 import com.ofeitus.onemorestep.data.timeFormat
-import com.ofeitus.onemorestep.presentation.dialog.StepsTargetDialog
-import com.ofeitus.onemorestep.presentation.dialog.TargetTimeDialog
+import com.ofeitus.onemorestep.presentation.component.TextWithTooltip
+import com.ofeitus.onemorestep.presentation.dialog.StepsGoalDialog
+import com.ofeitus.onemorestep.presentation.dialog.TimeGoalDialog
 import com.ofeitus.onemorestep.presentation.viewmodel.StepsViewModel
 import com.ofeitus.onemorestep.ui.theme.CustomGreen
 import com.ofeitus.onemorestep.ui.theme.CustomRed
@@ -98,10 +104,10 @@ fun StepsScreen(viewModel: StepsViewModel) {
 @Composable
 fun StatsComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier) {
     val stepsCount = viewModel.stepsCount
-    val stepsTarget = viewModel.stepsTarget
-    val targetTime = viewModel.targetTime
-    val currentTempo = viewModel.currentTempo
-    val avgTempoEstimatedGoalTime = viewModel.avgTempoEstimatedGoalTime
+    val stepsGoal = viewModel.stepsGoal
+    val timeGoal = viewModel.timeGoal
+    val currentPace = viewModel.currentPace
+    val avgPaceEstimatedGoalTime = viewModel.avgPaceEstimatedGoalTime
 
     Column(
         modifier = modifier,
@@ -126,18 +132,18 @@ fun StatsComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "Target steps",
+                    "Steps goal",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    "/${stepsTarget.collectAsStateWithLifecycle().value ?: "-"}",
+                    "/${stepsGoal.collectAsStateWithLifecycle().value ?: "-"}",
                     autoSize = TextAutoSize.StepBased(),
                     maxLines = 1
                 )
             }
             IconButton(
-                onClick = { viewModel.openTargetDialog() },
+                onClick = { viewModel.openStepsGoalDialog() },
                 content = {
                     Icon(
                         painterResource(R.drawable.vscode_codicons_edit),
@@ -147,18 +153,18 @@ fun StatsComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier) {
             )
             Column(modifier = Modifier.padding(12.dp, 0.dp, 0.dp, 0.dp).weight(1f)) {
                 Text(
-                    "Target time",
+                    "Time goal",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    targetTime.collectAsStateWithLifecycle().value?.format(timeFormat) ?: "-",
+                    timeGoal.collectAsStateWithLifecycle().value?.format(timeFormat) ?: "-",
                     autoSize = TextAutoSize.StepBased(),
                     maxLines = 1
                 )
             }
             IconButton(
-                onClick = { viewModel.openTargetTimeDialog() },
+                onClick = { viewModel.openTimeGoalDialog() },
                 content = {
                     Icon(
                         painterResource(R.drawable.vscode_codicons_edit),
@@ -166,8 +172,8 @@ fun StatsComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier) {
                     )
                 }
             )
-            StepsTargetDialog(viewModel)
-            TargetTimeDialog(viewModel)
+            StepsGoalDialog(viewModel)
+            TimeGoalDialog(viewModel)
         }
         Row(
             modifier = Modifier.fillMaxWidth().weight(0.4f),
@@ -175,25 +181,31 @@ fun StatsComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "Current tempo",
+                    "Current pace",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary
                 )
                 Text(
-                    if (currentTempo != null) tempoFromNanosToHours(currentTempo).toString() else "-",
+                    if (currentPace != null) paceFromNanosToHours(currentPace).toString() else "-",
                     autoSize = TextAutoSize.StepBased(),
                     maxLines = 1
                 )
             }
             Column(modifier = Modifier.padding(12.dp, 0.dp, 0.dp, 0.dp).weight(1f)) {
-                Text(
-                    "Estimate time",
+                TextWithTooltip(
+                    text = "Estimate time",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.secondary
+                    color = MaterialTheme.colorScheme.secondary,
+                    tooltip = {
+                        Text(
+                            "Time to reach your goal\nif you maintain your\ncurrent average pace",
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                    }
                 )
                 Text(
-                    avgTempoEstimatedGoalTime?.format(
-                        if (avgTempoEstimatedGoalTime.toLocalDate().isAfter(viewModel.currentDate))
+                    avgPaceEstimatedGoalTime?.format(
+                        if (avgPaceEstimatedGoalTime.toLocalDate().isAfter(viewModel.currentDate))
                             dateTimeFormat
                         else
                             timeFormat
@@ -207,7 +219,7 @@ fun StatsComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier) {
 
 @Composable
 fun ChartComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier) {
-    val targetTempo = viewModel.targetTempo
+    val targetPace = viewModel.targetPace
 
     val indicatorShape = ShapeComponent(
         Fill(MaterialTheme.colorScheme.background),
@@ -218,7 +230,7 @@ fun ChartComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier) {
         emptyList(),
     )
     val horizontalLine = HorizontalLine(
-        y = { tempoFromNanosToHours(targetTempo ?: 0.0).toDouble() },
+        y = { paceFromNanosToHours(targetPace ?: 0.0).toDouble() },
         line = rememberLineComponent(fill = Fill(CustomGreen), thickness = 2.dp),
         labelComponent = rememberTextComponent(
             margins = Insets(8.dp),
@@ -231,10 +243,41 @@ fun ChartComponent(viewModel: StepsViewModel, modifier: Modifier = Modifier) {
     )
 
     Column(modifier = modifier) {
-        Text(
-            "Average tempo",
+        TextWithTooltip(
+            text = "Average pace",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.secondary
+            color = MaterialTheme.colorScheme.secondary,
+            tooltip = {
+                Column {
+                    Row(
+                        modifier = Modifier.padding(0.dp, 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier.size(10.dp).clip(CircleShape).background(CustomRed)
+                        )
+                        Text(
+                            "Your average pace\nfor the whole day",
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.padding(0.dp, 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier.size(10.dp).clip(CircleShape).background(CustomGreen)
+                        )
+                        Text(
+                            "Pace you should aim for\nto reach goal",
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
+                }
+
+            }
         )
         CartesianChartHost(
             rememberCartesianChart(

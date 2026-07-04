@@ -16,32 +16,32 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "us
 class SettingRepository(private val context: Context) {
 
     companion object {
-        val STEPS_TARGET = longPreferencesKey("steps_target")
-        val TARGET_TIME = stringPreferencesKey("target_time")
+        val STEPS_GOAL = longPreferencesKey("steps_goal")
+        val TIME_GOAL = stringPreferencesKey("time_goal")
     }
 
-    val stepsTargetFlow: Flow<Long?> = context.dataStore.data
+    val stepsGoalFlow: Flow<Long?> = context.dataStore.data
         .map { preferences ->
-            preferences[STEPS_TARGET]
+            preferences[STEPS_GOAL]
         }
-    val targetTimeFlow: Flow<LocalTime?> = context.dataStore.data
+    val timeGoalFlow: Flow<LocalTime?> = context.dataStore.data
         .map { preferences ->
-            val stringTime = preferences[TARGET_TIME]
+            val stringTime = preferences[TIME_GOAL]
             if (stringTime == null)
                 return@map null
             else
                 return@map LocalTime.parse(stringTime)
         }
 
-    suspend fun saveStepsTarget(stepsTarget: Long) {
+    suspend fun saveStepsGoal(stepsGoal: Long) {
         context.dataStore.edit { preferences ->
-            preferences[STEPS_TARGET] = stepsTarget
+            preferences[STEPS_GOAL] = stepsGoal
         }
     }
 
-    suspend fun saveTargetTime(time: LocalTime) {
+    suspend fun saveTimeGoal(timeGoal: LocalTime) {
         context.dataStore.edit { preferences ->
-            preferences[TARGET_TIME] = time.toString()
+            preferences[TIME_GOAL] = timeGoal.toString()
         }
     }
 }
