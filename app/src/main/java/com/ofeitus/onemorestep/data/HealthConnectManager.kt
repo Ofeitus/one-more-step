@@ -1,4 +1,4 @@
-package com.example.onemorestep.data
+package com.ofeitus.onemorestep.data
 
 import android.content.Context
 import android.os.Build

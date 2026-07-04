@@ -1,4 +1,4 @@
-package com.example.onemorestep.ui.theme
+package com.ofeitus.onemorestep.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

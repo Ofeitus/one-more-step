@@ -1,4 +1,4 @@
-package com.example.onemorestep.presentation
+package com.ofeitus.onemorestep.presentation
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -22,14 +22,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.onemorestep.R
-import com.example.onemorestep.data.HealthConnectManager
-import com.example.onemorestep.data.SettingRepository
-import com.example.onemorestep.presentation.screen.HistoryScreen
-import com.example.onemorestep.presentation.screen.StepsScreen
-import com.example.onemorestep.presentation.viewmodel.StepsViewModel
-import com.example.onemorestep.presentation.viewmodel.StepsViewModelFactory
-import com.example.onemorestep.ui.theme.BWTheme
+import com.ofeitus.onemorestep.R
+import com.ofeitus.onemorestep.data.HealthConnectManager
+import com.ofeitus.onemorestep.data.SettingRepository
+import com.ofeitus.onemorestep.presentation.screen.HistoryScreen
+import com.ofeitus.onemorestep.presentation.screen.StepsScreen
+import com.ofeitus.onemorestep.presentation.viewmodel.StepsViewModel
+import com.ofeitus.onemorestep.presentation.viewmodel.StepsViewModelFactory
+import com.ofeitus.onemorestep.ui.theme.BWTheme
 
 sealed class Screen(val route: String, val title: String, val iconId: Int) {
     object Home : Screen("home", "Home", R.drawable.vscode_codicons_home)

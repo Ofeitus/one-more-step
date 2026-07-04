@@ -1,12 +1,12 @@
-package com.example.onemorestep
+package com.ofeitus.onemorestep
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.onemorestep.data.HealthConnectManager
-import com.example.onemorestep.data.SettingRepository
-import com.example.onemorestep.presentation.App
+import com.ofeitus.onemorestep.data.HealthConnectManager
+import com.ofeitus.onemorestep.data.SettingRepository
+import com.ofeitus.onemorestep.presentation.App
 
 class StepActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

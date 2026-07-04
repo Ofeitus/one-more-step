@@ -1,4 +1,4 @@
-package com.example.onemorestep.presentation.viewmodel
+package com.ofeitus.onemorestep.presentation.viewmodel
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -8,11 +8,11 @@ import androidx.health.connect.client.records.StepsRecord
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.onemorestep.data.HealthConnectManager
-import com.example.onemorestep.data.SettingRepository
-import com.example.onemorestep.data.localEndTime
-import com.example.onemorestep.data.stepsDurationNanos
-import com.example.onemorestep.data.tempoFromNanosToHours
+import com.ofeitus.onemorestep.data.HealthConnectManager
+import com.ofeitus.onemorestep.data.SettingRepository
+import com.ofeitus.onemorestep.data.localEndTime
+import com.ofeitus.onemorestep.data.stepsDurationNanos
+import com.ofeitus.onemorestep.data.tempoFromNanosToHours
 import com.patrykandpatrick.vico.compose.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.compose.cartesian.data.lineModel
 import kotlinx.coroutines.Dispatchers

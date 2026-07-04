@@ -1,4 +1,4 @@
-package com.example.onemorestep.presentation.dialog
+package com.ofeitus.onemorestep.presentation.dialog
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,8 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.onemorestep.presentation.viewmodel.StepsViewModel
-import com.example.onemorestep.ui.theme.DarkGray
+import com.ofeitus.onemorestep.presentation.viewmodel.StepsViewModel
+import com.ofeitus.onemorestep.ui.theme.DarkGray
 import io.github.plovotok.wheelpicker.OverlayConfiguration
 import io.github.plovotok.wheelpicker.WheelPicker
 import io.github.plovotok.wheelpicker.rememberWheelPickerState

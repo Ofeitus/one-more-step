@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.onemorestep"
+    namespace = "com.ofeitus.onemorestep"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.onemorestep"
+        applicationId = "com.ofeitus.onemorestep"
         minSdk = 31
         targetSdk = 37
         versionCode = 1

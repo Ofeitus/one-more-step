@@ -1,8 +1,7 @@
-package com.example.onemorestep.data
+package com.ofeitus.onemorestep.data
 
 import androidx.health.connect.client.records.StepsRecord
 import java.time.Duration
-import java.time.Instant
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 

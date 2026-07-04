@@ -1,4 +1,4 @@
-package com.example.onemorestep.ui.theme
+package com.ofeitus.onemorestep.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

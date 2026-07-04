@@ -1,4 +1,4 @@
-package com.example.onemorestep.ui.theme
+package com.ofeitus.onemorestep.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
@@ -6,7 +6,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.example.onemorestep.R
+import com.ofeitus.onemorestep.R
 
 val JetBrainsMono = FontFamily(
     Font(R.font.jetbrains_mono),

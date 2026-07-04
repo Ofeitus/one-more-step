@@ -1,16 +1,13 @@
-package com.example.onemorestep.presentation.screen
+package com.ofeitus.onemorestep.presentation.screen
 
 import android.content.res.Configuration
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Icon
@@ -22,7 +19,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
@@ -31,16 +27,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.onemorestep.R
-import com.example.onemorestep.data.dateTimeFormat
-import com.example.onemorestep.data.tempoFromNanosToHours
-import com.example.onemorestep.data.timeFormat
-import com.example.onemorestep.presentation.dialog.StepsTargetDialog
-import com.example.onemorestep.presentation.dialog.TargetTimeDialog
-import com.example.onemorestep.presentation.viewmodel.StepsViewModel
-import com.example.onemorestep.ui.theme.CustomBlue
-import com.example.onemorestep.ui.theme.CustomGreen
-import com.example.onemorestep.ui.theme.CustomRed
+import com.ofeitus.onemorestep.R
+import com.ofeitus.onemorestep.data.dateTimeFormat
+import com.ofeitus.onemorestep.data.tempoFromNanosToHours
+import com.ofeitus.onemorestep.data.timeFormat
+import com.ofeitus.onemorestep.presentation.dialog.StepsTargetDialog
+import com.ofeitus.onemorestep.presentation.dialog.TargetTimeDialog
+import com.ofeitus.onemorestep.presentation.viewmodel.StepsViewModel
+import com.ofeitus.onemorestep.ui.theme.CustomGreen
+import com.ofeitus.onemorestep.ui.theme.CustomRed
 import com.patrykandpatrick.vico.compose.cartesian.AutoScrollCondition
 import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.compose.cartesian.Scroll
@@ -67,7 +62,6 @@ import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
-import kotlin.text.format
 
 @Composable
 fun StepsScreen(viewModel: StepsViewModel) {

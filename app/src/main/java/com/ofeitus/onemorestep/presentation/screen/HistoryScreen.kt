@@ -1,13 +1,11 @@
-package com.example.onemorestep.presentation.screen
+package com.ofeitus.onemorestep.presentation.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -24,8 +22,8 @@ import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.metadata.Device
 import androidx.health.connect.client.records.metadata.Metadata
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.onemorestep.data.timeFormat
-import com.example.onemorestep.presentation.viewmodel.StepsViewModel
+import com.ofeitus.onemorestep.data.timeFormat
+import com.ofeitus.onemorestep.presentation.viewmodel.StepsViewModel
 import java.time.Instant
 import java.time.ZoneOffset
 
