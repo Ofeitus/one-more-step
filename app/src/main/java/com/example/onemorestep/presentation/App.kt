@@ -2,25 +2,21 @@ package com.example.onemorestep.presentation
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -35,9 +31,9 @@ import com.example.onemorestep.presentation.viewmodel.StepsViewModel
 import com.example.onemorestep.presentation.viewmodel.StepsViewModelFactory
 import com.example.onemorestep.ui.theme.BWTheme
 
-sealed class Screen(val route: String, val title: String) {
-    object Home : Screen("home", "Home")
-    object History : Screen("profile", "History")
+sealed class Screen(val route: String, val title: String, val iconId: Int) {
+    object Home : Screen("home", "Home", R.drawable.vscode_codicons_home)
+    object History : Screen("profile", "History", R.drawable.vscode_codicons_history)
 }
 
 @Composable
@@ -61,7 +57,7 @@ fun App(healthConnectManager: HealthConnectManager, settingRepository: SettingRe
                     items.forEach { screen ->
                         NavigationBarItem(
                             icon = { Icon(
-                                painterResource(R.drawable.vscode_codicons_edit),
+                                painterResource(screen.iconId),
                                 contentDescription = screen.title
                             ) },
                             label = { Text(screen.title) },

@@ -37,6 +37,9 @@ class StepsViewModel(
 ) : ViewModel() {
     private val currentTempoSeconds = 5 * 60
 
+    var currentDate by mutableStateOf<LocalDate>(LocalDate.now())
+        private set
+
     private val _stepsRecords = MutableStateFlow<List<StepsRecord>>(emptyList())
     val stepsRecords: StateFlow<List<StepsRecord>> = _stepsRecords.asStateFlow()
 
@@ -66,14 +69,10 @@ class StepsViewModel(
 
     var currentTempo by mutableStateOf<Double?>(null)
         private set
-    var targetTempo by mutableStateOf<Double?>(null)
-        private set
-    var avgTempo by mutableStateOf<Double?>(null)
+    var avgTempoEstimatedGoalTime by mutableStateOf<LocalDateTime?>(null)
         private set
 
-    var currentTempoEstimatedGoalTime by mutableStateOf<LocalDateTime?>(null)
-        private set
-    var avgTempoEstimatedGoalTime by mutableStateOf<LocalDateTime?>(null)
+    var targetTempo by mutableStateOf<Double?>(null)
         private set
 
     val permissions = setOf(
@@ -102,9 +101,10 @@ class StepsViewModel(
             if (!healthConnectManager.hasAllPermissions(permissions)) {
                 return@launch
             }
-            val currentDate = LocalDate.now();
-            val atStartOfDay = currentDate.atStartOfDay();
-            val now = LocalDateTime.now();
+
+            currentDate = LocalDate.now()
+            val atStartOfDay = currentDate.atStartOfDay()
+            val now = LocalDateTime.now()
 
             _stepsRecords.value = healthConnectManager.readSteps(
                 atStartOfDay.toInstant(ZoneOffset.UTC),
@@ -137,24 +137,19 @@ class StepsViewModel(
             else
                 remainingSteps?.toDouble()?.div(remainingTime)
             targetTempo?.let { if (it < 0) targetTempo = 0.0 }
-            avgTempo = if (passedTime > 0) stepsCount?.toDouble()?.div(passedTime) else null
+            val avgTempo = if (passedTime > 0) stepsCount?.toDouble()?.div(passedTime) else null
 
-            currentTempoEstimatedGoalTime = if (remainingSteps == null || remainingSteps == 0L || currentTempo == null)
-                null
-            else
-                now.plusNanos((remainingSteps / currentTempo!!).toLong())
             avgTempoEstimatedGoalTime = if (remainingSteps == null || remainingSteps == 0L || avgTempo == null)
                 null
             else
-                now.plusNanos((remainingSteps / avgTempo!!).toLong())
+                now.plusNanos((remainingSteps / avgTempo).toLong())
 
             chartModelProducer.runTransaction {
                 lineModel {
                     val stack = ArrayDeque(stepsRecords.value)
                     var stepsCount = 0L
-                    val targetTempoX = mutableListOf<Number>()
+                    val x = mutableListOf<Number>()
                     val targetTempoY = mutableListOf<Number>()
-                    val avgTempoX = mutableListOf<Number>()
                     val avgTempoY = mutableListOf<Number>()
 
                     val timeTicks = mutableListOf<LocalDateTime>()
@@ -169,35 +164,16 @@ class StepsViewModel(
                         while (!stack.isEmpty() && localEndTime(stack.first()).isBefore(time)) {
                             stepsCount += stack.removeFirst().count
                         }
-
-                        val epochMillis = time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-                        var remainingSteps = stepsTarget.value?.minus(stepsCount)
-                        remainingSteps?.let {
-                            if (it < 0) {
-                                remainingSteps = 0
-                            }
-                        }
                         val passedTime = Duration.between(atStartOfDay, time).toNanos()
-                        val remainingTime = if (targetTime.value == null) {
-                            null
-                        } else {
-                            Duration.between(time, currentDate.atTime(targetTime.value)).toNanos()
-                        }
 
-                        targetTempoX.add(epochMillis)
-                        targetTempoY.add(tempoFromNanosToHours(
-                            if (remainingTime == null || remainingTime <= 0)
-                                0.0
-                            else
-                                remainingSteps?.toDouble()?.div(remainingTime) ?: 0.0)
-                        )
+                        x.add(time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
 
-                        avgTempoX.add(epochMillis)
+                        targetTempoY.add(tempoFromNanosToHours(targetTempo ?: 0.0))
                         avgTempoY.add(tempoFromNanosToHours(if (passedTime > 0) stepsCount.toDouble() / passedTime else 0.0))
                     }
 
-                    series(targetTempoX, targetTempoY)
-                    series(avgTempoX, avgTempoY)
+                    series(x, targetTempoY)
+                    series(x, avgTempoY)
                 }
             }
         }

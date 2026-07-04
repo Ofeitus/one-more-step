@@ -1,9 +1,13 @@
 package com.example.onemorestep.presentation.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -12,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,6 +36,24 @@ fun HistoryScreen(viewModel: StepsViewModel) {
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
     ) {
+        stickyHeader {
+            Row (
+                modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background).padding(8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Time",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Text(
+                    text = "Steps count",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+        }
+
         itemsIndexed(
             items = itemList,
             key = { _, item -> item.metadata.id }
@@ -45,22 +68,22 @@ fun HistoryScreen(viewModel: StepsViewModel) {
 
 @Composable
 fun CardItem(record: StepsRecord) {
-    Column(
-        modifier = Modifier.padding(8.dp)
+    Row (
+        modifier = Modifier.fillMaxWidth().padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(
-            text = "${record.count} steps",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(0.dp, 8.dp)
-        )
         Text(
             text = "${
                 record.startTime.atZone(record.startZoneOffset).toLocalDateTime().format(timeFormat)
             } - ${
                 record.endTime.atZone(record.endZoneOffset).toLocalDateTime().format(timeFormat)
             }",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.secondary
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Text(
+            text = "${record.count}",
+            style = MaterialTheme.typography.titleLarge
         )
     }
 }

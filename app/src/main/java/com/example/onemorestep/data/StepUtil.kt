@@ -6,6 +6,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+val dateTimeFormat: DateTimeFormatter? = DateTimeFormatter.ofPattern("dd.MM.yyyy'\n'H:mm")
 val timeFormat: DateTimeFormatter? = DateTimeFormatter.ofPattern("H:mm")
 
 fun stepsDurationNanos(record: StepsRecord): Long {
