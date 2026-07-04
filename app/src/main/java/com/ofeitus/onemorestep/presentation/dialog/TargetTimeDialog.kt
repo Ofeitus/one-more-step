@@ -12,8 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ofeitus.onemorestep.presentation.viewmodel.StepsViewModel
 import com.ofeitus.onemorestep.ui.theme.DarkGray
-import github.plovotok.wheel_picker.samples.TimerPicker
-import github.plovotok.wheel_picker.samples.rememberTimerPickerState
+import com.ofeitus.onemorestep.presentation.component.TimerPicker
+import com.ofeitus.onemorestep.presentation.component.rememberTimerPickerState
 import java.time.LocalTime
 
 @Composable
